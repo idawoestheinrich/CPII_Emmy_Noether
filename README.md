@@ -1,5 +1,7 @@
 # CPII_Emmy_Noether
 
+I just copied the README-file from the StatPhys2022 course, and changed it a bit. You will probably recognize this once you have your first tutorial in that course.
+
 Humboldt Universität zu Berlin - Computational Physics II WS2023/2024 (Prof. Dr. Agostino Patella)
 
 ## Getting started
