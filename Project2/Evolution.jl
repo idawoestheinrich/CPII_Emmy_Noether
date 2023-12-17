@@ -100,12 +100,13 @@ end
 @doc """`choose_integrator` returns the chosen the integrator function, it is necessary, because `if` does not create a local scope in julia
     ##### Input parameters of `choose_integrator`:
     - `method::string` : one of the methods, `euler`, `crank-nicolson` or  `strang-splitting`
+    - `P` : pre-computed fast furier transform of ψ_0 
     ##### Optional parameters:
     - `tol_cg::Number`   : tolerance of the `conjugate_gradient`
     - `maxiters_cg::Int` : maximum number of iterations of the `conjugate_gradient` 
     ##### Output values(out): 
     - `out`    : local function """ ->
-function choose_integrator(method; tol_cg::Number=1e-10, maxiters_cg::Int=10000)
+function choose_integrator(method, P;  tol_cg::Number=1e-10, maxiters_cg::Int=10000)
     methods = ["euler", "crank-nicolson", "strang-splitting"]
     @assert(method in methods, "method = " * string(method) * " must be one of " * string(methods))
 
@@ -114,7 +115,7 @@ function choose_integrator(method; tol_cg::Number=1e-10, maxiters_cg::Int=10000)
     elseif method == methods[2]
         out = (μ, ϵ, ψ, V, τ) -> crank_nicolson(μ, ϵ, ψ, V, τ, tol_cg, maxiters_cg)
     elseif method == methods[3]
-        P = plan_fft(ψ_0); P_inv = inv(P) #is this significantly quicker?
+        P_inv = inv(P) #is this significantly quicker?
         out = (μ, ϵ, ψ, V, τ) -> strang_splitting(μ, ϵ, ψ, V, τ, P, P_inv)
     end
     
@@ -142,8 +143,8 @@ function simulate_1D(N::Int, μ::Number, ϵ::Number, T::Number, τ::Number, ψ_0
     @assert(T > 0, "T = " * string(T) * " must be positive")
     @assert(fps > 0, "fps = " * string(fps) * " must be positive")
     @assert(gif_length > 0, "gif_length = " * string(gif_length) * " must be positive")
-    
-    integrator = choose_integrator(method; tol_cg, maxiters_cg)
+    P = plan_fft(ψ_0) 
+    integrator = choose_integrator(method, P; tol_cg, maxiters_cg)
     
     n = lattice(N, 1)
     V = potential(μ, ϵ, n)
@@ -225,8 +226,9 @@ function simulate_2D(N::Int, μ::Number, ϵ::Number, T::Number, τ::Number, ψ_0
     @assert(T > 0, "T = " * string(T) * " must be positive")
     @assert(fps > 0, "fps = " * string(fps) * " must be positive")
     @assert(gif_length > 0, "gif_length = " * string(gif_length) * " must be positive")
-
-    integrator = choose_integrator(method; tol_cg, maxiters_cg)
+   
+    P = plan_fft(ψ_0) 
+    integrator = choose_integrator(method, P; tol_cg, maxiters_cg)
     
     n_1D = lattice(N, 1)
     n = lattice(N, 2)
