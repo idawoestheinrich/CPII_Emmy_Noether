@@ -107,7 +107,9 @@ end
     - `method::string` : one of the methods, `euler`, `crank-nicolson` or  `strang-splitting`
     ##### Optional parameters:
     - `tol_cg::Number`   : tolerance of the `conjugate_gradient`
-    - `maxiters_cg::Int` : maximum number of iterations of the `conjugate_gradient` 
+    - `maxiters_cg::Int` : maximum number of iterations of the `conjugate_gradient`
+    - `P` : pre-computed FFT of ψ_0 needed for the strang_splitting function
+    - `P_inv`: pre-computed inverse FFT of ψ_0 needed for the strang_splitting function
     ##### Output values(out): 
     - `out`    : local function """ ->
 function choose_integrator(method; tol_cg::Number=1e-10, maxiters_cg::Int=10000, P=nothing, P_inv=nothing)
