@@ -1,5 +1,5 @@
 #This file contains the core functions from project 1.3
-#Requires Ground_state.jl and FFTW!
+#Requires 1.2_Ground_state.jl and FFTW!
 
 @doc """`wave_packet` generates the initial wave function as a gaussian with a certain momentum: 
     -the center , width and momentum of the gaussian should be given as parameters 
