@@ -1,4 +1,8 @@
 #This file contains the core functions from project 1.2
+#Requires LinearAlgebra,Random,Printf!
+
+#Hamiltonian module
+
 @doc """`lattice` constructs an array of lattice coordinates 
     ##### Input parameters of `lattice`:
     - `N::Int`    : Number of Points in each direction
@@ -32,7 +36,6 @@ function potential(μ::Number, ϵ::Number, n::Array)
     
     return @. μ/8 * (ϵ^2*dot(n,n) - 1)^2
 end
-
 
 @doc """`kinetic` takes ψ and returns Hψ for the free Hamiltonian with periodic boundary conditions
     ##### Input parameters of `kinetic`:
@@ -70,6 +73,8 @@ function Hamiltonian(μ::Number, ϵ::Number, ψ::Array, V::Array)
     
     return kinetic(μ, ϵ, ψ) + V .* ψ
 end
+
+#Eigenvector module
 
 @doc """`power_method` calculates an approximation of the largest eigenvalue λ
     and corresponding eigenvector ν of the positive-definite linear map 'A'. The quality
@@ -178,6 +183,8 @@ function lowest_eigenvalue(vshape::Tuple{Vararg{Int}}, apply_A::Function, tol_pm
     return 1/λ, v
 end
 
+#Observable module
+
 @doc """`energy_expectation` calculates the energy expectation value and variance of the wave function ψ  
 using the functions `lattice`, `potential` and `Hamiltonian`
 ##### Input parameters of `energy_expectation`:
@@ -193,8 +200,11 @@ function energy_expectation(ψ::Array, μ::Number, ϵ::Number)
 
     exp_E = real(dot(ψ, Hamiltonian(μ, ϵ, ψ, V)))
     var_E = real(dot(Hamiltonian(μ, ϵ, ψ, V), Hamiltonian(μ, ϵ, ψ, V))) - exp_E^2
+
+    if var_E < 0 std_E = nothing
+    else std_E = sqrt(var_E) end
     
-    return exp_E, sqrt(abs(var_E))
+    return exp_E, std_E
 end
 
 @doc """`position_operator` multiplies the positions of points on the lattice componentwise with ψ
@@ -214,7 +224,7 @@ function position_operator(ψ::Array)
     return rψ
 end
 
-@doc """`momentum_operator` multiplies the differnce between neighbors on the lattice componentwise with -i/2*ψ
+@doc """`momentum_operator` multiplies the difference between neighbors on the lattice componentwise with -i/2*ψ
 ##### Input parameter of `momentum_operator`:
 - `ψ::Array`     : discretized wavefunction  
 ##### Output values: (-i/2*pψ)
@@ -245,7 +255,10 @@ function position_expectation(ψ::Array)
     exp_r = Tuple(real(dot(ψ, selectdim(rψ, D+1, k))) for k in 1:D)
     var_r = Tuple(real(dot(selectdim(rψ, D+1, k), selectdim(rψ, D+1, k))) for k in 1:D) .- exp_r.^2
 
-    return exp_r, sqrt.(var_r)
+    if min(var_r...) < 0 std_r = Tuple(0 for k in 1:D)
+    else std_r = sqrt.(var_r) end
+
+    return exp_r, std_r
 end
 
 @doc """`momentum_expectation` calculates the momentum expectation value and variance of the wave function ψ  
@@ -262,7 +275,10 @@ function momentum_expectation(ψ::Array)
     exp_p = Tuple(real(dot(ψ, selectdim(pψ, D+1, k))) for k in 1:D)
     var_p = Tuple(real(dot(selectdim(pψ, D+1, k), selectdim(pψ, D+1, k))) for k in 1:D) .- exp_p.^2
 
-    return exp_p, sqrt.(var_p)
+    if min(var_p...) < 0 std_p = Tuple(0 for k in 1:D)
+    else std_p = sqrt.(var_p) end
+
+    return exp_p, std_p
 end
 
 @doc """`halfspace_prob` calculates the probability to find the particle in the half-line x > 0.
@@ -280,6 +296,8 @@ function halfspace_prob(ψ::Array)
     
     return real(dot(ψ[ind...], ψ[ind...]))
 end
+
+#Ground state program
 
 @doc """### The `ground_state` function
 1. reads the relevant parameters from an input file or from command line,
